@@ -4,8 +4,8 @@
   line-height: 1.5;
   font-weight: 400;
   color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+  color: var(--text-color);
+  background-color: var(--bg-color);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -15,11 +15,26 @@
 /* Light Mode */
 @media (prefers-color-scheme: light) {
   :root {
-    color: #213547;
-    background-color: #ffffff;
+    --text-color: #213547;
+    --bg-color: #ffffff;
+    --card-bg: #f8f9fa;
+    --border-color: #dee2e6;
+    --link-color: #1971c2;
+    --link-hover: #1864ab;
   }
 }
 
+/* Dark Mode */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --text-color: rgba(255, 255, 255, 0.87);
+    --bg-color: #242424;
+    --card-bg: #1a1a1a;
+    --border-color: #444;
+    --link-color: #4dabf7;
+    --link-hover: #74c0fc;
+  }
+}
 
 /* App Container */
 .app-container {
@@ -42,7 +57,7 @@
 }
 
 .app-title {
-  color: #2c3e50;
+  color: #3498db;
   margin-bottom: 30px;
   text-align: center;
 }
@@ -265,7 +280,7 @@
 }
 
 .download-title {
-  color: #2c3e50;
+  color: #3498db;
   text-align: center;
 }
 
@@ -280,7 +295,9 @@
   align-items: center;
   justify-content: space-between;
   padding: 10px;
-  background-color: #f8f9fa;
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
   border-radius: 4px;
 }
 

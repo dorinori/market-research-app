@@ -167,10 +167,13 @@ UNCOMMENT IF WE NEED TO RE-GENERATE area_data.json
 # ADD YOUR OWN API KEY HERE
 #geolocator = GoogleV3(api_key='')
 
-with open("area_data.json", "r") as json_file:
+area_data_path = os.path.join(os.path.dirname(__file__), "..", "data", "area_data.json")
+city_data_path = os.path.join(os.path.dirname(__file__), "..", "data", "city_data.json")
+
+with open(area_data_path, "r") as json_file:
     area_data = json.load(json_file)
 
-with open("city_data.json", "r") as json_file:
+with open(city_data_path, "r") as json_file:
     city_data = json.load(json_file)
 
 def get_city_coordinates(city_name):
@@ -183,7 +186,7 @@ def get_city_coordinates(city_name):
             city_data[city_name] = {
                 "coordinates": coordinates
             }
-            with open("city_data.json", "w") as json_file:
+            with open(city_data_path, "w") as json_file:
                 json.dump(city_data, json_file, indent=4)
             return coordinates
         else:
@@ -258,8 +261,8 @@ def scrape_cities(url, state, min_population):
 
 # Main function
 def main():
-    # Create output directory if it doesn't exist
-    output_dir = "scraped_data"
+
+    output_dir = os.path.join(os.path.dirname(__file__), "..", "data", "scraped_data")
     os.makedirs(output_dir, exist_ok=True)
 
     base_url_city = 'https://www.city-data.com/city/'

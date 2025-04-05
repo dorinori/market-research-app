@@ -1,33 +1,18 @@
 {
-    "version": 2,
-    "builds": [
-      {
-        "src": "main:app",
-        "use": "@vercel/python",
-        "config": {
-          "maxLambdaSize": "15mb",
-          "runtime": "python3.9"
-        }
-      },
-      {
-        "src": "public/*",
-        "use": "@vercel/static"
+  "version": 2,
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist" // Or your React build directory
       }
-    ],
-    "routes": [
-      {
-        "src": "/scrape",
-        "dest": "main:app",
-        "methods": ["POST"]
-      },
-      {
-        "src": "/download/(.*)",
-        "dest": "main:app",
-        "methods": ["GET"]
-      },
-      {
-        "src": "/(.*)",
-        "dest": "main:app"
-      }
-    ]
-  }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ]
+}

@@ -10,6 +10,7 @@ from geopy.exc import GeocoderQueryError
 import os
 from geopy.geocoders import GoogleV3
 
+
 app = FastAPI()
 
 # Allow requests from all origins
@@ -31,7 +32,7 @@ async def read_stream(stream, callback):
         if not line:
             break
         callback(line.strip())
-        
+
 @app.post("/scrape")
 async def scrape(request: StatesRequest):
     states = set(request.states)
@@ -61,8 +62,8 @@ async def scrape(request: StatesRequest):
 
         # Read output in real-time
         def handle_output(line):
-            print(f"Scraper output: {line}")
-            # You might want to parse JSON output here if your scraper emits it
+            if line.startswith("Scraping"):
+                print(f"Scraper Console Output: {line}")
             
         # Read both stdout and stderr
         while True:
@@ -73,21 +74,20 @@ async def scrape(request: StatesRequest):
                 handle_output(output.strip())
         
         # Check return code
-        return_code = process.poll()
-        print("Subprocess completed with return code:", return_code)
+        # return_code = process.poll()
+        # print("Subprocess completed with return code:", return_code)
         
         # Collect results from output files
-        for state in states:
-            filename = os.path.join("scraped_data", f"{state.replace(' ', '').lower()}_cities_population.json")
-            if os.path.exists(filename):
-                with open(filename, "r") as file:
-                    cities_data = json.load(file)
-                all_results.append({state: {"status": "success", "data": cities_data}})
-            else:
-                all_results.append({state: {"status": "error", "message": f"Output file not found for {state}"}})
+        # for state in states:
+        #     filename = os.path.join("scraped_data", f"{state.replace(' ', '').lower()}_cities_population.json")
+        #     if os.path.exists(filename):
+        #         with open(filename, "r") as file:
+        #             cities_data = json.load(file)
+        #         all_results.append({state: {"status": "success", "data": cities_data}})
+        #     else:
+        #         all_results.append({state: {"status": "error", "message": f"Output file not found for {state}"}})
         
-        print("Finished scraping all states")
-        return {"status": "success", "data": all_results}
+        return {"status": "success"}
 
     except HTTPException as he:
         raise he
@@ -116,3 +116,4 @@ async def download_file(filename: str):
         filename=filename,
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
+

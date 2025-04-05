@@ -319,6 +319,7 @@ def main():
         
         for city in cities_to_analyze:
             print(f"Scraping {city}, {state}")
+            sys.stdout.flush()
             url_city = f'{base_url_city}{city.replace(' ', '-').replace('\'', '')}-{state.replace(' ', '-')}.html'
             city_data = scrape_city_data(url_city, city_fields)
             if city_data:
@@ -344,10 +345,12 @@ def main():
 
         if data['City']:
             print(f"Scraping complete for state of {state}")
+            sys.stdout.flush()
             filename = os.path.join(output_dir, f'scraped_population_and_job_data_{state.replace(' ', '').lower()}.xlsx')
             save_to_spreadsheet(data, filename)
 
     print("Scraping complete for all states")
+    sys.stdout.flush()
 
 
 if __name__ == "__main__":

@@ -3004,5 +3004,143 @@
             61.2175758,
             -149.8996785
         ]
+    },
+    "Arvada, CO": {
+        "coordinates": [
+            39.8027644,
+            -105.0874842
+        ]
+    },
+    "Aurora, CO": {
+        "coordinates": [
+            39.7294319,
+            -104.8319195
+        ]
+    },
+    "Boulder, CO": {
+        "coordinates": [
+            40.0189728,
+            -105.2747406
+        ]
+    },
+    "Broomfield, CO": {
+        "coordinates": [
+            39.9205411,
+            -105.0866504
+        ]
+    },
+    "Castle Rock, CO": {
+        "coordinates": [
+            39.3722121,
+            -104.8560902
+        ]
+    },
+    "Centennial, CO": {
+        "coordinates": [
+            39.5807452,
+            -104.8771726
+        ]
+    },
+    "Colorado Springs, CO": {
+        "coordinates": [
+            38.8353142,
+            -104.8216009
+        ]
+    },
+    "Commerce City, CO": {
+        "coordinates": [
+            39.8083196,
+            -104.9338675
+        ]
+    },
+    "Denver, CO": {
+        "coordinates": [
+            39.7392358,
+            -104.990251
+        ]
+    },
+    "Fort Collins, CO": {
+        "coordinates": [
+            40.5852602,
+            -105.084423
+        ]
+    },
+    "Grand Junction, CO": {
+        "coordinates": [
+            39.0689478,
+            -108.5642809
+        ]
+    },
+    "Greeley, CO": {
+        "coordinates": [
+            40.4233142,
+            -104.7091322
+        ]
+    },
+    "Highlands Ranch, CO": {
+        "coordinates": [
+            39.5480789,
+            -104.9739333
+        ]
+    },
+    "Lakewood, CO": {
+        "coordinates": [
+            39.7047095,
+            -105.0813734
+        ]
+    },
+    "Longmont, CO": {
+        "coordinates": [
+            40.1672068,
+            -105.1019275
+        ]
+    },
+    "Loveland, CO": {
+        "coordinates": [
+            40.395451,
+            -105.0745837
+        ]
+    },
+    "Northeast Jefferson, CO": {
+        "coordinates": [
+            39.5500507,
+            -105.7820674
+        ]
+    },
+    "Pueblo, CO": {
+        "coordinates": [
+            38.2705996,
+            -104.6101033
+        ]
+    },
+    "South Aurora, CO": {
+        "coordinates": [
+            39.7507086,
+            -104.8277673
+        ]
+    },
+    "Southwest Arapahoe, CO": {
+        "coordinates": [
+            39.62031,
+            -104.332644
+        ]
+    },
+    "Thornton, CO": {
+        "coordinates": [
+            39.8680412,
+            -104.9719243
+        ]
+    },
+    "West Adams, CO": {
+        "coordinates": [
+            39.5500507,
+            -105.7820674
+        ]
+    },
+    "Westminster, CO": {
+        "coordinates": [
+            39.8366528,
+            -105.0372046
+        ]
     }
 }

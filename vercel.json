@@ -2,17 +2,29 @@
   "version": 2,
   "builds": [
     {
-      "src": "package.json",
+      "src": "client/package.json",
       "use": "@vercel/static-build",
       "config": {
-        "distDir": "dist" // Or your React build directory
+        "distDir": "dist"
+      }
+    },
+    {
+      "src": "server/server.py",
+      "use": "@vercel/python",
+      "config": {
+        "maxLambdaSize": "15mb",
+        "runtime": "python3.9"
       }
     }
   ],
   "routes": [
     {
+      "src": "/api/(.*)",
+      "dest": "server/server.py"
+    },
+    {
       "src": "/(.*)",
-      "dest": "/index.html"
+      "dest": "client/dist/$1"
     }
   ]
 }

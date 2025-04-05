@@ -101,142 +101,154 @@ function App() {
       <div className="app-content">
         <h1 className="app-title">Market Research</h1>
 
+        <div className="content-columns">
+          {/* User Input */}
+          <div className="user-input-container">
+            <div className="container-header">
+              <span className="border-title">Input Target Data</span>
+            </div>
+            {/* API Key Input */}
+            <div className="api-key-container">
+              <h2 className="api-key-input-title">
+                Enter Google Maps API Key: 
+              </h2>
+              <div className="api-key-input-wrapper">
+                  <input
+                    type={showApiKey ? "text" : "password"}
+                    value={apiKey}
+                    onChange={(e) => {
+                      setApiKey(e.target.value);
+                      setError(null);
+                      setApiError(null);
+                    }}
+                    className={`api-key-input ${apiError ? 'error' : ''}`}
+                    placeholder="Google Maps API key"
+                  />
+                  <button 
+                    onClick={() => setShowApiKey(!showApiKey)}
+                    className="api-key-toggle"
+                    type="button"
+                    aria-label={showApiKey ? "Hide API key" : "Show API key"}
+                  >
+                    {showApiKey ? 'HIDE' : 'SHOW'}
+                  </button>
+                </div>
+              </div>
 
-        {/* User Input */}
-        <div className="user-input-container">
-          {/* API Key Input with Toggle Visibility */}
-          <div className="api-key-container">
-            <div className="api-key-input-wrapper">
-                <input
-                  type={showApiKey ? "text" : "password"}
-                  value={apiKey}
-                  onChange={(e) => {
-                    setApiKey(e.target.value);
-                    setError(null);
-                    setApiError(null);
-                  }}
-                  className={`api-key-input ${apiError ? 'error' : ''}`}
-                  placeholder="Enter your API key"
-                />
+              {/* API error message */}
+              {apiError && (
+                <p className="api-error">
+                  {apiError}
+                  <small>(Closest Metro Areas may not be generated)</small>
+                </p>
+              )}
+            
+            {/* State Selection */}
+            <h2 className="state-selection-title">Select States:
+                <span className="state-counter">
+                  ({selectedStates.length}/{states.length} selected)
+                </span>
+            </h2>
+
+            <div className="state-search-container">
+              <input
+                type="text"
+                placeholder="Search states..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="state-search-input"
+              />
+              {searchTerm && (
                 <button 
-                  onClick={() => setShowApiKey(!showApiKey)}
-                  className="api-key-toggle"
-                  type="button"
-                  aria-label={showApiKey ? "Hide API key" : "Show API key"}
+                  onClick={() => setSearchTerm('')} 
+                  className="clear-search-button"
+                  aria-label="Clear search"
                 >
-                  {showApiKey ? 'HIDE' : 'SHOW'}
+                  ×
+                </button>
+              )}
+
+              <div className="state-selection-actions">
+                <button 
+                  onClick={selectAllStates}
+                  className="selection-action-button"
+                  disabled={selectedStates.length === states.length}
+                >
+                  Select All
+                </button>
+                <button 
+                  onClick={clearAllStates}
+                  className="selection-action-button"
+                  disabled={selectedStates.length === 0}
+                >
+                  Clear All
                 </button>
               </div>
             </div>
-
-            {/* API error message */}
-            {apiError && (
-              <p className="api-error">
-                {apiError}
-                <small>(Closest Metro Areas may not be generated)</small>
-              </p>
-            )}
-          
-          {/* State Selection */}
-          <h2 className="state-selection-title">Select states to begin data scrape:
-              <span className="state-counter">
-                ({selectedStates.length}/{states.length} selected)
-              </span>
-          </h2>
-
-          <div className="state-search-container">
-            <input
-              type="text"
-              placeholder="Search states..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="state-search-input"
-            />
-            {searchTerm && (
-              <button 
-                onClick={() => setSearchTerm('')} 
-                className="clear-search-button"
-                aria-label="Clear search"
-              >
-                ×
-              </button>
-            )}
-          </div>
-
-          <div className="state-selection-actions">
-            <button 
-              onClick={selectAllStates}
-              className="selection-action-button"
-              disabled={selectedStates.length === states.length}
-            >
-              Select All
-            </button>
-            <button 
-              onClick={clearAllStates}
-              className="selection-action-button"
-              disabled={selectedStates.length === 0}
-            >
-              Clear All
-            </button>
-          </div>
-          <div className="state-checkbox-grid">
-            {filteredStates.map((state) => (
-              <label key={state} className="state-checkbox-label">
-                <input
-                  type="checkbox"
-                  value={state}
-                  checked={selectedStates.includes(state)}
-                  onChange={handleStateChange}
-                  className="state-checkbox-input"
-                />
-                {state}
-              </label>
-            ))}
-            {filteredStates.length === 0 && (
-              <div className="no-results">No matching states found</div>
-            )}
-          </div>
-
-          {/* Generate Data Button */}
-          <div className="submit-container">
-            <button 
-              onClick={handleSubmit} 
-              disabled={loading || selectedStates.length === 0 || !apiKey}
-              className="submit-button"
-            >
-              {loading ? 'Scraping...' : 'Generate Data'}
-            </button>
-            
-            {/* Error message */}
-            {error && !loading && (
-              <div className="error-message">
-                {error}
+            {/* Scrollable States Area */}
+            <div className="states-scroll-container">
+              <div className="state-checkbox-grid">
+                {filteredStates.map((state) => (
+                  <label key={state} className="state-checkbox-label">
+                    <input
+                      type="checkbox"
+                      value={state}
+                      checked={selectedStates.includes(state)}
+                      onChange={handleStateChange}
+                      className="state-checkbox-input"
+                    />
+                    {state}
+                  </label>
+                ))}
+                {filteredStates.length === 0 && (
+                  <div className="no-results">No matching states found</div>
+                )}
               </div>
-            )}
-          </div>
-
-        </div>
-
-        {/* Download Section */}
-        {(
-          <div className="download-section">
-            <h2 className="download-title">Generated Files:</h2>
-            <div className="download-list">
-              {downloadedFiles.map((file) => (
-                <div key={file.name} className="download-item">
-                  <span className="download-item-name">{file.state} Data</span>
-                  <a
-                    href={getDownloadUrl(file.name)}
-                    download
-                    className="download-link"
-                  >
-                    Download
-                  </a>
-                </div>
-              ))}
             </div>
+
+            {/* Generate Data Button */}
+            <div className="submit-container">
+              <button 
+                onClick={handleSubmit} 
+                disabled={loading || selectedStates.length === 0 || !apiKey}
+                className="submit-button"
+              >
+                {loading ? 'Scraping...' : 'Generate Data'}
+              </button>
+              
+              {/* Error message */}
+              {error && !loading && (
+                <div className="error-message">
+                  {error}
+                </div>
+              )}
+            </div>
+
           </div>
-        )}
+
+          {/* Download Section */}
+          {(
+            <div className="download-section">
+              <div className="container-header">
+                <span className="border-title">Generated Files</span>
+              </div>
+              <div className="download-list">
+                {downloadedFiles.map((file) => (
+                  <div key={file.name} className="download-item">
+                    <span className="download-item-name">{file.state} Data</span>
+                    <a
+                      href={getDownloadUrl(file.name)}
+                      download
+                      className="download-link"
+                    >
+                      Download
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

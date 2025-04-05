@@ -1,0 +1,33 @@
+{
+    "version": 2,
+    "builds": [
+      {
+        "src": "main:app",
+        "use": "@vercel/python",
+        "config": {
+          "maxLambdaSize": "15mb",
+          "runtime": "python3.9"
+        }
+      },
+      {
+        "src": "public/*",
+        "use": "@vercel/static"
+      }
+    ],
+    "routes": [
+      {
+        "src": "/scrape",
+        "dest": "main:app",
+        "methods": ["POST"]
+      },
+      {
+        "src": "/download/(.*)",
+        "dest": "main:app",
+        "methods": ["GET"]
+      },
+      {
+        "src": "/(.*)",
+        "dest": "main:app"
+      }
+    ]
+  }

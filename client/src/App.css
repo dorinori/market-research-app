@@ -44,7 +44,7 @@
   justify-content: center;
   min-height: 100vh;
   width: 100%;
-  padding: 2rem;
+  padding: 0px;
   box-sizing: border-box;
 }
 
@@ -52,22 +52,92 @@
   width: 100%;
   max-width: 1200px;
   display: flex;
-  flex-direction: column;
-  align-items: center;
+  flex-direction: column; 
+  align-items: center; 
 }
 
 .app-title {
+  width: 100%;
+  text-align: left;
+  margin-bottom: 20px;
+  margin-top: 0px;
   color: #3498db;
-  margin-bottom: 30px;
-  text-align: center;
+  font-size: 40px;
 }
 
-.user-input-container {
-  margin: 0 0 25px 0;
-  padding: 15px 20px;
-  border: 1px solid #eee;
-  border-radius: 4px;
+.content-columns {
+  display: flex;
   width: 100%;
+  gap: 20px;
+  align-items: stretch;
+}
+
+/* User Input Container */
+.user-input-container {
+  flex: 0 0 70%;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 15px;
+  position: relative; /* Needed for absolute positioning */
+  height: 600px; /* Fixed height */
+  display: flex;
+  flex-direction: column;
+}
+
+/* Container Header Styles */
+.container-header {
+  position: relative;
+  margin: -15px -20px 15px -20px; /* Negative margins to pull out */
+  text-align: left;
+}
+
+.border-title {
+  display: inline-block;
+  background-color: var(--bg-color); /* Match your background */
+  padding: 0 15px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #3498db;
+  position: relative;
+  z-index: 1;
+}
+
+/* Add border lines that the text "cuts" through */
+.container-header::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 1px;
+  background-color: var(--border-color);
+  z-index: 0;
+}
+
+/* Container-specific adjustments */
+.user-input-container .border-title {
+  color: #3498db; 
+}
+
+.download-section .border-title {
+  color: #2ecc71; 
+}
+
+.user-input-container,
+.download-section {
+  /* Fixed dimensions */
+  height: 600px; /* Fixed height */
+  width: 100%; /* Will respect flex basis */
+  
+  /* Scroll behavior */
+  overflow-y: auto; /* Vertical scroll when needed */
+  overflow-x: hidden; /* Prevent horizontal scroll */
+  
+  /* Consistent styling */
+  padding: 15px;
+  padding-top: 20px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
   box-sizing: border-box;
 }
 
@@ -127,6 +197,7 @@
 }
 
 /* State Selection */
+.api-key-input-title, 
 .state-selection-title {
   margin-top: 0;
   font-size: 16px;
@@ -144,22 +215,28 @@
 /* Search Container */
 .state-search-container {
   position: relative;
-  margin-bottom: 10px;
+  margin-bottom: 20px;
   width: 100%;
+  display: flex;
+  gap: 10px;
+  align-items: center; 
+  height: 40px;
 }
 
 .state-search-input {
   padding: 10px 30px 10px 12px;
   border: 1px solid #ddd;
   border-radius: 4px;
-  width: 100%;
+  flex-grow: 1;
   font-size: 14px;
   box-sizing: border-box;
+  height: 100%; 
+  position: relative;
 }
 
 .clear-search-button {
   position: absolute;
-  right: 8px;
+  right: 182px; 
   top: 50%;
   transform: translateY(-50%);
   background: none;
@@ -168,6 +245,10 @@
   font-size: 16px;
   color: #999;
   padding: 0 5px;
+  height: 100%; 
+  display: flex;
+  align-items: center;
+  z-index:2;
 }
 
 .clear-search-button:hover {
@@ -179,17 +260,24 @@
   text-align: center;
   color: #666;
   padding: 10px;
+  font-size: 14px;
+}
+
+/* Scrollable States Area */
+.states-scroll-container {
+  flex: 1;
+  overflow-y: auto;
+  margin-bottom: 15px;
 }
 
 .state-selection-actions {
   display: flex;
   gap: 10px;
-  justify-content: flex-start;
-  margin-bottom: 15px;
+  height: 100%;
 }
 
 .selection-action-button {
-  padding: 8px 16px;
+  padding: 0 16px; 
   background-color: #3498db;
   color: white;
   border: none;
@@ -197,6 +285,11 @@
   cursor: pointer;
   font-size: 12px;
   transition: background-color 0.2s;
+  white-space: nowrap;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .selection-action-button:hover:not(:disabled) {
@@ -209,17 +302,19 @@
   opacity: 0.7;
 }
 
+/* State Checkbox Grid */
 .state-checkbox-grid {
   display: flex;
   flex-wrap: wrap;
+  gap: 10px;
   row-gap: 0px;
-  column-gap: 80px;
-  width: 100%;
+  padding-bottom: 10px; /* Prevents cutoff */
 }
 
+
 .state-checkbox-label {
-  flex: 1 0 150px;
-  max-width: 150px; 
+  flex: 1 0 145px;
+  max-width: 145px; 
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -231,14 +326,14 @@
   min-width: 16px;
 }
 
-/* Submit Button */
+/* Sticky Submit Button */
 .submit-container {
-  display: flex;
-  flex-direction: column;
-  align-items: left;
-  gap: 15px;
-  margin-top: 20px;
-  width: 100%;
+  position: sticky;
+  bottom: 0;
+  background: var(--bg-color);
+  padding-top: 15px;
+  margin-top: auto; /* Pushes to bottom */
+  border-top: none; /* Remove the border line */
 }
 
 .submit-button {
@@ -270,24 +365,17 @@
   max-width: 600px;
 }
 
-/* Download Section */
+/* Download Section - 20% width */
 .download-section {
-  margin-top: 30px;
-  border-top: 1px solid #eee;
-  padding-top: 20px;
-  width: 100%;
-  max-width: 800px;
-}
-
-.download-title {
-  color: #3498db;
-  text-align: center;
+  flex: 0 0 30%; /* Takes 20% width */
+  position: sticky;
+  top: 20px;
 }
 
 .download-list {
-  display: grid;
-  gap: 10px;
-  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .download-item {
@@ -299,20 +387,29 @@
   border: 1px solid var(--border-color);
   color: var(--text-color);
   border-radius: 4px;
-}
 
-.download-item-name {
-  font-weight: 500;
 }
 
 .download-link {
-  padding: 8px 16px;
+  margin-top: 8px;
+  width: 100px;
+  text-align: center;
+  padding: 5px;
   background-color: #2ecc71;
   color: white;
   text-decoration: none;
   border-radius: 4px;
   font-size: 14px;
-  transition: background-color 0.2s;
+}
+
+.download-item-name {
+  font-weight: 500;
+  font-size: 14px;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: clip;
+  padding-right: 12px;
 }
 
 .download-link:hover {

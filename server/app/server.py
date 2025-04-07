@@ -9,9 +9,12 @@ import traceback
 from geopy.exc import GeocoderQueryError
 import os
 from geopy.geocoders import GoogleV3
+from pathlib import Path
 
 
 app = FastAPI()
+
+BASE_DIR = Path(__file__).parent
 
 # Allow requests from all origins
 app.add_middleware(
@@ -100,14 +103,16 @@ async def scrape(request: StatesRequest):
 @app.get("/api/download/{filename}")
 async def download_file(filename: str):
     # Construct the file path
-    file_path = os.path.join(
-        os.path.dirname(__file__),  # Current directory (app/)
-        "..",                      # Go up to server/
-        "data",                    # Into data/
-        "scraped_data",            # Into scraped_data/
-        filename                   # The requested file
-    )
+    # file_path = os.path.join(
+    #     os.path.dirname(__file__),  # Current directory (app/)
+    #     "..",                      # Go up to server/
+    #     "data",                    # Into data/
+    #     "scraped_data",            # Into scraped_data/
+    #     filename                   # The requested file
+    # )
     
+    file_path = BASE_DIR / "data" / "scraped_data" / filename
+
     # Check if file exists
     if not os.path.exists(file_path):
         raise HTTPException(status_code=404, detail="File not found")

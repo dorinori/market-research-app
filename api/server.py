@@ -21,11 +21,13 @@ if os.getenv("VERCEL") != "1":
     load_dotenv()
 
 # Initialize S3 client
-s3 = boto3.client('s3',
-    aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),
-    aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY'),
-    region_name=os.getenv('AWS_REGION', 'us-east-2')
-)
+def get_s3_client():
+    return boto3.client('s3',
+        aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),
+        aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY'),
+        region_name=os.getenv('AWS_REGION', 'us-east-2')
+    )
+
 
 app = FastAPI()
 
@@ -99,6 +101,7 @@ async def download_file(filename: str):
         if not bucket_name:
             raise ValueError("S3_BUCKET_NAME environment variable not set")
             
+        s3 = get_s3_client()
         url = s3.generate_presigned_url(
             'get_object',
             Params={'Bucket': bucket_name, 'Key': filename},
@@ -138,5 +141,4 @@ if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
 else:
-    # For Vercel serverless
     __all__ = ["app", "vercel_handler"]

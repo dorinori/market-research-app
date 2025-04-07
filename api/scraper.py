@@ -291,7 +291,7 @@ def save_to_s3(data, state):
         
         # Create Excel file in memory
         excel_buffer = BytesIO()
-        df.to_excel(excel_buffer, index=False)
+        df.to_excel(excel_buffer, index=False, engine='openpyxl')
         excel_buffer.seek(0)
         
         # Upload to S3

@@ -70,10 +70,10 @@ async def scrape_data(request: StatesRequest):
         # Replace subprocess call with direct function import
         try:
             # Import your scraper logic directly
-            from scraper import run_scraper  # Make sure scraper.py is in your deployment package
+            from .scraper import run_scraper  # Make sure scraper.py is in your deployment package
             print(states)
             # Run the scraper directly instead of via subprocess
-            # results = run_scraper(states, api_key)
+            results = run_scraper(states, api_key)
             
             return JSONResponse({
                 "status": "success",

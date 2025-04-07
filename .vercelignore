@@ -1,4 +1,5 @@
 # .vercelignore
+api/venv/
 node_modules/
 dist/
 dist-ssr/

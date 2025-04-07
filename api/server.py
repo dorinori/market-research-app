@@ -12,6 +12,7 @@ from geopy.geocoders import GoogleV3
 from pathlib import Path
 import boto3
 from dotenv import load_dotenv  # For local development
+from mangum import Mangum
 
 if os.getenv("VERCEL") != "1": 
     load_dotenv()
@@ -23,6 +24,7 @@ s3 = boto3.client('s3',
 )
 
 app = FastAPI()
+handle = Mangum(app)
 
 # BASE_DIR = Path(__file__).parent
 

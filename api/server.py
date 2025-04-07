@@ -10,11 +10,20 @@ from geopy.exc import GeocoderQueryError
 import os
 from geopy.geocoders import GoogleV3
 from pathlib import Path
+import boto3
+from dotenv import load_dotenv  # For local development
 
+load_dotenv()  # Load .env file (local only)
+
+s3 = boto3.client('s3',
+    aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),
+    aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY'),
+    region_name=os.getenv('AWS_REGION', 'us-east-2')
+)
 
 app = FastAPI()
 
-BASE_DIR = Path(__file__).parent
+# BASE_DIR = Path(__file__).parent
 
 # Allow requests from all origins
 app.add_middleware(
@@ -36,7 +45,6 @@ async def read_stream(stream, callback):
             break
         callback(line.strip())
 
-# @app.post("/scrape")
 @app.post("/api/scrape")
 async def scrape(request: StatesRequest):
     states = set(request.states)
@@ -98,28 +106,16 @@ async def scrape(request: StatesRequest):
     except Exception as e:
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
-    
-# @app.get("/download/{filename}")
-@app.get("/api/download/{filename}") 
+
+@app.get("/api/download/{filename}")
 async def download_file(filename: str):
-    # Construct the file path
-    # file_path = os.path.join(
-    #     os.path.dirname(__file__),  # Current directory (app/)
-    #     "data",                    # Into data/
-    #     "scraped_data",            # Into scraped_data/
-    #     filename                   # The requested file
-    # )
-    
-    file_path = BASE_DIR / "data" / "scraped_data" / filename
-
-    # Check if file exists
-    if not file_path.exists():
-        raise HTTPException(status_code=404, detail="File not found")
-    
-    # Return the file for download
-    return FileResponse(
-        path=file_path,
-        filename=filename,
-        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    )
-
+    try:
+        bucket_name = os.getenv('S3_BUCKET_NAME')
+        url = s3.generate_presigned_url(
+            'get_object',
+            Params={'Bucket': bucket_name, 'Key': f'{filename}'},
+            ExpiresIn=3600  # 1-hour valid URL
+        )
+        return {"url": url}
+    except Exception as e:
+        raise HTTPException(500, detail=str(e))

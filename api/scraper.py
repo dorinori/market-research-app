@@ -26,10 +26,25 @@ import re
 import os
 from datetime import datetime
 from shapely.geometry import Point
-import geopandas as gpd
 from geopy.geocoders import GoogleV3
 from geopy.distance import geodesic
 from pathlib import Path
+import boto3
+from io import BytesIO
+from dotenv import load_dotenv
+
+load_dotenv()
+
+AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
+AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
+AWS_REGION = os.getenv('AWS_REGION', 'us-east-1')
+S3_BUCKET_NAME = os.getenv('S3_BUCKET_NAME', 'your-bucket-name')
+
+s3 = boto3.client('s3',
+    aws_access_key_id=AWS_ACCESS_KEY_ID,
+    aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
+    region_name=AWS_REGION
+)
 
 BASE_DIR = Path(__file__).parent
 DATA_DIR = BASE_DIR / "data"
@@ -172,10 +187,10 @@ UNCOMMENT IF WE NEED TO RE-GENERATE area_data.json
 # ADD YOUR OWN API KEY HERE
 #geolocator = GoogleV3(api_key='')
 
-area_data_path = DATA_DIR / "area_data.json"
-city_data_path = DATA_DIR / "city_data.json"
-# area_data_path = os.path.join(os.path.dirname(__file__), "data", "area_data.json")
-# city_data_path = os.path.join(os.path.dirname(__file__), "data", "city_data.json")
+# area_data_path = DATA_DIR / "area_data.json"
+# city_data_path = DATA_DIR / "city_data.json"
+area_data_path = os.path.join(os.path.dirname(__file__), "data", "area_data.json")
+city_data_path = os.path.join(os.path.dirname(__file__), "data", "city_data.json")
 
 with open(area_data_path, "r") as json_file:
     area_data = json.load(json_file)
@@ -266,10 +281,36 @@ def scrape_cities(url, state, min_population):
 
     return cities
 
+def save_to_s3(data, state):
+    """Save DataFrame directly to S3 as Excel file"""
+    try:
+        # Create DataFrame
+        df = pd.DataFrame(data)
+        
+        # Create Excel file in memory
+        excel_buffer = BytesIO()
+        df.to_excel(excel_buffer, index=False)
+        excel_buffer.seek(0)
+        
+        # Upload to S3
+        filename = f'scraped_population_and_job_data_{state.replace(" ", "").lower()}.xlsx'
+        s3.upload_fileobj(
+            excel_buffer,
+            S3_BUCKET_NAME,
+            filename
+        )
+        
+        print(f"Data saved to S3: {filename}")
+        return filename
+        
+    except Exception as e:
+        print(f"Error saving to S3: {e}")
+        raise
+
 # Main function
 def main():
-    output_dir = SCRAPED_DIR
-    # output_dir = os.path.join(os.path.dirname(__file__), "data", "scraped_data")
+    # output_dir = SCRAPED_DIR
+    output_dir = os.path.join(os.path.dirname(__file__), "data", "scraped_data")
     os.makedirs(output_dir, exist_ok=True)
 
     base_url_city = 'https://www.city-data.com/city/'
@@ -353,8 +394,15 @@ def main():
         if data['City']:
             print(f"Scraping complete for state of {state}")
             sys.stdout.flush()
-            filename = os.path.join(output_dir, f'scraped_population_and_job_data_{state.replace(' ', '').lower()}.xlsx')
-            save_to_spreadsheet(data, filename)
+            s3_filename = save_to_s3(data, state)
+            download_url = s3.generate_presigned_url(
+                'get_object',
+                Params={'Bucket': S3_BUCKET_NAME, 'Key': s3_filename},
+                ExpiresIn=3600  # 1 hour expiration
+            )
+            print(f"Download URL: {download_url}")
+            # filename = os.path.join(output_dir, f'scraped_population_and_job_data_{state.replace(' ', '').lower()}.xlsx')
+            # save_to_spreadsheet(data, filename)
 
     print("Scraping complete for all states")
     sys.stdout.flush()

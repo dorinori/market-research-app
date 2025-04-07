@@ -4,8 +4,8 @@ import pandas as pd
 def concatenate_state_files():
     # Set up directories
     current_dir = os.path.dirname(os.path.abspath(__file__))
-    DATA_DIR = os.path.join(current_dir, '..', 'data', 'scraped_data')
-    OUTPUT_DIR = os.path.join(current_dir, '..', 'data')
+    DATA_DIR = os.path.join(current_dir, 'data', 'scraped_data')
+    OUTPUT_DIR = os.path.join(current_dir, 'data')
     OUTPUT_FILE = os.path.join(OUTPUT_DIR, 'master_real_estate_data.xlsx')
     
     # Create output directory if it doesn't exist

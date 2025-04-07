@@ -1,22 +1,26 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
-import subprocess
 import json
 from pydantic import BaseModel
-import sys
 import traceback
 from geopy.exc import GeocoderQueryError
 import os
 from geopy.geocoders import GoogleV3
-from pathlib import Path
 import boto3
-from dotenv import load_dotenv  # For local development
+from dotenv import load_dotenv
 from mangum import Mangum
+import logging
 
+# Configure logging
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+
+# Load environment variables if not in Vercel
 if os.getenv("VERCEL") != "1": 
     load_dotenv()
 
+# Initialize S3 client
 s3 = boto3.client('s3',
     aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),
     aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY'),
@@ -25,9 +29,7 @@ s3 = boto3.client('s3',
 
 app = FastAPI()
 
-# BASE_DIR = Path(__file__).parent
-
-# Allow requests from all origins
+# CORS Configuration
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -37,97 +39,85 @@ app.add_middleware(
 )
 
 class StatesRequest(BaseModel):
-    states: list  # expects a list of strings (states)
+    states: list
     api_key: str
 
-async def read_stream(stream, callback):
-    while True:
-        line = stream.readline()
-        if not line:
-            break
-        callback(line.strip())
-
 @app.get("/api/test")
-async def root():
+async def test_endpoint():
     return {"message": "API is working"}
 
 @app.post("/api/scrape")
-async def scrape(request: StatesRequest):
-    states = set(request.states)
+async def scrape_data(request: StatesRequest):
+    """
+    Modified scrape endpoint that works with AWS Lambda
+    """
+    states = request.states
     api_key = request.api_key
-    print(f"Running scraper for states: {states}, api: {api_key}")
+    logger.info(f"Starting scrape for states: {states}")
     
-    all_results = []
     try:
-        # Test the API key first
+        # Validate Google Maps API key
         geolocator = GoogleV3(api_key=api_key)
-        try: 
+        try:
             test_location = geolocator.geocode("New York")
             if not test_location:
                 raise HTTPException(status_code=400, detail="Geocoding service unavailable")
         except GeocoderQueryError as e:
             raise HTTPException(status_code=400, detail="Invalid Google Maps API key")
         
-        # Start the subprocess
-        process = subprocess.Popen(
-            ["python3", "scraper.py", json.dumps(list(states)), api_key],  # Properly serialize states list
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
-            bufsize=1,
-            universal_newlines=True
-        )
-
-        # Read output in real-time
-        def handle_output(line):
-            # if line.startswith("Scraping"):
-                print(f"Scraper Console Output: {line}")
+        # Replace subprocess call with direct function import
+        try:
+            # Import your scraper logic directly
+            from scraper import run_scraper  # Make sure scraper.py is in your deployment package
+            print(states)
+            # Run the scraper directly instead of via subprocess
+            results = run_scraper(states, api_key)
             
-        # Read both stdout and stderr
-        while True:
-            output = process.stdout.readline()
-            if output == '' and process.poll() is not None:
-                break
-            if output:
-                handle_output(output.strip())
-        
-        # Check return code
-        # return_code = process.poll()
-        # print("Subprocess completed with return code:", return_code)
-        
-        return JSONResponse({
-            "status": "success",
-            "states_processed": list(states),
-            "api_key_valid": True
-        })
-
+            return JSONResponse({
+                "status": "success",
+                "states_processed": states,
+                "api_key_valid": True,
+                "data": results  # Include any results from the scraper
+            })
+            
+        except ImportError:
+            raise HTTPException(
+                status_code=500,
+                detail="Scraper module not available. Ensure scraper.py is included in deployment."
+            )
+            
     except HTTPException as he:
         raise he
     except Exception as e:
-        traceback.print_exc()
+        logger.error(f"Scraping error: {str(e)}\n{traceback.format_exc()}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/download/{filename}")
 async def download_file(filename: str):
     try:
         bucket_name = os.getenv('S3_BUCKET_NAME')
+        if not bucket_name:
+            raise ValueError("S3_BUCKET_NAME environment variable not set")
+            
         url = s3.generate_presigned_url(
             'get_object',
-            Params={'Bucket': bucket_name, 'Key': f'{filename}'},
-            ExpiresIn=3600  # 1-hour valid URL
+            Params={'Bucket': bucket_name, 'Key': filename},
+            ExpiresIn=3600
         )
         return {"url": url}
     except Exception as e:
+        logger.error(f"Download error: {str(e)}")
         raise HTTPException(500, detail=str(e))
-    
 
-handler = Mangum(app)
+# AWS Lambda handler
+handler = Mangum(app, lifespan="off")
 
+# Optional: Keep this if you need direct Lambda invocation
 def lambda_handler(event, context):
     try:
         return handler(event, context)
     except Exception as e:
-        print(f"ERROR: {str(e)}\n{traceback.format_exc()}")
+        logger.error(f"Lambda handler error: {str(e)}\n{traceback.format_exc()}")
         return {
             "statusCode": 500,
             "body": json.dumps({"error": str(e)})

@@ -309,7 +309,8 @@ def save_to_s3(data, state):
         raise
 
 # Main function
-def main():
+# def main():
+def run_scraper(states, key):
     # output_dir = SCRAPED_DIR
     output_dir = os.path.join(os.path.dirname(__file__), "data", "scraped_data")
     os.makedirs(output_dir, exist_ok=True)
@@ -331,12 +332,12 @@ def main():
         'Unemployment rate': '//*[@id="unemployment"]/div[1]/table/tr[1]/td[2]/text()'
     }
 
-    STATES_TO_ANALYZE = eval(sys.argv[1])
+    STATES_TO_ANALYZE = states #eval(sys.argv[1])
     # STATES_TO_ANALYZE = {
     #     'North Carolina', 'Alabama', 'Georgia'
     # }
 
-    API_KEY = sys.argv[2]
+    API_KEY = key
     # Initialize geolocator with the provided API key
     global geolocator
     geolocator = GoogleV3(api_key=API_KEY)
@@ -409,5 +410,5 @@ def main():
     sys.stdout.flush()
 
 
-if __name__ == "__main__":
-    main()
+# if __name__ == "__main__":
+#     main()

@@ -374,6 +374,7 @@
   text-overflow: ellipsis; /* Add ellipsis if too long */
 }
 
+
 /* Download Section - 20% width */
 .download-section {
   flex: 0 0 30%; /* Takes 20% width */

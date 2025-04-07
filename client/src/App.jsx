@@ -57,7 +57,8 @@ function App() {
     setDownloadedFiles([]);
     
     try {
-      const response = await fetch("/api/scrape", {
+      // const response = await fetch("/api/scrape", {
+      const response = await fetch("http://127.0.0.1:8000/api/scrape", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -68,6 +69,7 @@ function App() {
   
       // First get the raw response text
       const responseText = await response.text();
+      console.log(responseText)
       
       try {
         // Try to parse as JSON
@@ -122,6 +124,7 @@ function App() {
   const getDownloadUrl = async (filename) => {
     try {
       const response = await fetch(`/api/download/${filename}`);
+      // const response = await fetch(`http://127.0.0.1:8000/api/download/${filename}`);
       if (!response.ok) {
         throw new Error('Failed to get download URL');
       }
@@ -254,21 +257,9 @@ function App() {
               </button>
               
               {/* Error message */}
-              {error && (
-                <div className="error-container">
-                  <div className="error-message">
-                    <strong>Error:</strong> {error}
-                  </div>
-                  {process.env.NODE_ENV === 'development' && (
-                    <details className="error-details">
-                      <summary>Debug Details</summary>
-                      <div className="error-debug">
-                        <p>API Endpoint: /api/scrape</p>
-                        <p>Selected States: {selectedStates.join(', ')}</p>
-                        <p>API Key: {apiKey ? `${apiKey.substring(0, 3)}...${apiKey.slice(-3)}` : 'Not provided'}</p>
-                      </div>
-                    </details>
-                  )}
+              {error && !loading && (
+                <div className="error-message">
+                   <strong>Error:</strong> {error}
                 </div>
               )}
             </div>

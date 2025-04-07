@@ -13,7 +13,8 @@ from pathlib import Path
 import boto3
 from dotenv import load_dotenv  # For local development
 
-load_dotenv()  # Load .env file (local only)
+if os.getenv("VERCEL") != "1": 
+    load_dotenv()
 
 s3 = boto3.client('s3',
     aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),

@@ -57,8 +57,8 @@ function App() {
     setDownloadedFiles([]);
     
     try {
-      const response = await fetch("http://127.0.0.1:8000/scrape", {
-      // const response = await fetch("/api/scrape", {
+      // const response = await fetch("http://127.0.0.1:8000/api/scrape", {
+      const response = await fetch("/api/scrape", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -93,9 +93,19 @@ function App() {
     }
   };
 
-  const getDownloadUrl = (filename) => {
-    return `http://127.0.0.1:8000/download/${filename}`;
-    // return `/api/download/${filename}`;
+  const getDownloadUrl = async (filename) => {
+    try {
+      // const response = await fetch(`http://127.0.0.1:8000/api/download/${filename}`);
+      const response = await fetch(`/api/download/${filename}`);
+      if (!response.ok) {
+        throw new Error('Failed to get download URL');
+      }
+      const data = await response.json();
+      return data.url;
+    } catch (error) {
+      console.error("Error getting download URL:", error);
+      return "#";
+    }
   };
 
   return (
@@ -239,8 +249,16 @@ function App() {
                   <div key={file.name} className="download-item">
                     <span className="download-item-name">{file.state} Data</span>
                     <a
-                      href={getDownloadUrl(file.name)}
-                      download
+                      href="#"
+                      onClick={async (e) => {
+                        e.preventDefault();
+                        const url = await getDownloadUrl(file.name);
+                        if (url && url !== "#") {
+                          window.open(url, '_blank', 'noopener,noreferrer');
+                        } else {
+                          setError("Failed to get download URL");
+                        }
+                      }}
                       className="download-link"
                     >
                       Download

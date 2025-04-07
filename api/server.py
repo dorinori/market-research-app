@@ -109,19 +109,30 @@ async def download_file(filename: str):
         logger.error(f"Download error: {str(e)}")
         raise HTTPException(500, detail=str(e))
 
-# AWS Lambda handler
-handler = Mangum(app, lifespan="off")
+
+handler = Mangum(app)
 
 # Optional: Keep this if you need direct Lambda invocation
-def vercel_handler(event, context):
-    try:
-        return handler(event, context)
-    except Exception as e:
-        logger.error(f"Vercel handler error: {str(e)}\n{traceback.format_exc()}")
-        return {
-            "statusCode": 500,
-            "body": json.dumps({"error": str(e)})
-        }
+def vercel_handler(request):
+    # Convert Vercel request to Lambda event
+    body = request.body if hasattr(request, 'body') else None
+    event = {
+        'httpMethod': request.method,
+        'path': request.path,
+        'headers': dict(request.headers),
+        'queryStringParameters': dict(request.query_params),
+        'body': body,
+    }
+    
+    # Call the Mangum handler
+    response = handler(event, None)
+    
+    # Convert Lambda response to FastAPI response
+    return JSONResponse(
+        content=json.loads(response['body']),
+        status_code=response['statusCode'],
+        headers=response['headers']
+    )
 
 if __name__ == "__main__":
     import uvicorn

@@ -29,6 +29,11 @@ from shapely.geometry import Point
 import geopandas as gpd
 from geopy.geocoders import GoogleV3
 from geopy.distance import geodesic
+from pathlib import Path
+
+BASE_DIR = Path(__file__).parent
+DATA_DIR = BASE_DIR / "data"
+SCRAPED_DIR = BASE_DIR / "data" / "scraped_data"
 
 geolocator = None
 
@@ -167,8 +172,10 @@ UNCOMMENT IF WE NEED TO RE-GENERATE area_data.json
 # ADD YOUR OWN API KEY HERE
 #geolocator = GoogleV3(api_key='')
 
-area_data_path = os.path.join(os.path.dirname(__file__), "..", "data", "area_data.json")
-city_data_path = os.path.join(os.path.dirname(__file__), "..", "data", "city_data.json")
+area_data_path = DATA_DIR / "area_data.json"
+city_data_path = DATA_DIR / "city_data.json"
+# area_data_path = os.path.join(os.path.dirname(__file__), "data", "area_data.json")
+# city_data_path = os.path.join(os.path.dirname(__file__), "data", "city_data.json")
 
 with open(area_data_path, "r") as json_file:
     area_data = json.load(json_file)
@@ -261,8 +268,8 @@ def scrape_cities(url, state, min_population):
 
 # Main function
 def main():
-
-    output_dir = os.path.join(os.path.dirname(__file__), "..", "data", "scraped_data")
+    output_dir = SCRAPED_DIR
+    # output_dir = os.path.join(os.path.dirname(__file__), "data", "scraped_data")
     os.makedirs(output_dir, exist_ok=True)
 
     base_url_city = 'https://www.city-data.com/city/'

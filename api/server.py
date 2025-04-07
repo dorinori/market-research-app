@@ -99,13 +99,12 @@ async def scrape(request: StatesRequest):
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
     
-@app.get("/download/{filename}")
-@app.get("/api/download/{filename}")
+# @app.get("/download/{filename}")
+@app.get("/api/download/{filename}") 
 async def download_file(filename: str):
     # Construct the file path
     # file_path = os.path.join(
     #     os.path.dirname(__file__),  # Current directory (app/)
-    #     "..",                      # Go up to server/
     #     "data",                    # Into data/
     #     "scraped_data",            # Into scraped_data/
     #     filename                   # The requested file
@@ -114,7 +113,7 @@ async def download_file(filename: str):
     file_path = BASE_DIR / "data" / "scraped_data" / filename
 
     # Check if file exists
-    if not os.path.exists(file_path):
+    if not file_path.exists():
         raise HTTPException(status_code=404, detail="File not found")
     
     # Return the file for download

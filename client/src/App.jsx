@@ -58,6 +58,7 @@ function App() {
     
     try {
       const response = await fetch("http://127.0.0.1:8000/scrape", {
+      // const response = await fetch("/api/scrape", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -94,6 +95,7 @@ function App() {
 
   const getDownloadUrl = (filename) => {
     return `http://127.0.0.1:8000/download/${filename}`;
+    // return `/api/download/${filename}`;
   };
 
   return (

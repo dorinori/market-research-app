@@ -2,29 +2,24 @@
     "version": 2,
     "builds": [
       {
-        "src": "api/server.py", 
+        "src": "api/server.py",
         "use": "@vercel/python",
         "config": {
-          "runtime": "python3.9",
-          "maxLambdaSize": "15mb"
-        }
-      },
-      {
-        "src": "client/src/*",    
-        "use": "@vercel/static-build",
-        "config": {
-          "distDir": "dist"     
+          "runtime": "python3.9"
         }
       }
     ],
     "routes": [
       {
-        "src": "/api/(.*)",     
+        "src": "/api/(.*)",
         "dest": "api/server.py"
       },
       {
-        "src": "/(.*)",          
-        "dest": "dist/$1"        
+        "src": "/(.*)",
+        "dest": "client/dist/$1",
+        "headers": {
+          "Cache-Control": "s-maxage=86400"
+        }
       }
     ]
   }

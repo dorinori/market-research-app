@@ -25,6 +25,7 @@ import pandas as pd
 from pandas import DataFrame
 import re
 import os
+import tempfile
 from datetime import datetime
 from shapely.geometry import Point
 from geopy.geocoders import GoogleV3
@@ -312,7 +313,8 @@ def save_to_s3(data, state):
 # def main():
 def run_scraper(states, key):
     # output_dir = SCRAPED_DIR
-    output_dir = os.path.join(os.path.dirname(__file__), "data", "scraped_data")
+    # output_dir = os.path.join(os.path.dirname(__file__), "data", "scraped_data")
+    output_dir = os.path.join(tempfile.gettempdir(), "scraped_data")
     os.makedirs(output_dir, exist_ok=True)
 
     base_url_city = 'https://www.city-data.com/city/'

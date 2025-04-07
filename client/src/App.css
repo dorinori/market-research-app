@@ -363,17 +363,16 @@
   color: #e74c3c;
   font-size: 14px;
   padding: 8px 12px;
-  background-color: rgba(231, 76, 60, 0.1); /* Lighter background */
+  background-color: rgba(231, 76, 60, 0.1);
   border-radius: 4px;
-  text-align: left; /* Changed from center */
-  width: auto; /* Let it take natural width */
-  max-width: 400px; /* Prevent it from getting too wide */
-  margin: 0; /* Remove any default margins */
-  white-space: nowrap; /* Keep error on one line */
-  overflow: hidden;
-  text-overflow: ellipsis; /* Add ellipsis if too long */
+  text-align: left;
+  width: auto;
+  max-width: 400px;
+  margin: 0;
+  white-space: nowrap;
+  overflow-x: auto; /* Allow horizontal scrolling */
+  overflow-y: hidden; /* Hide vertical overflow */
 }
-
 
 /* Download Section - 20% width */
 .download-section {

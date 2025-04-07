@@ -66,6 +66,7 @@ async def scrape_data(request: StatesRequest):
                 raise HTTPException(status_code=400, detail="Geocoding service unavailable")
         except GeocoderQueryError as e:
             raise HTTPException(status_code=400, detail="Invalid Google Maps API key")
+            return
         
         # Replace subprocess call with direct function import
         try:

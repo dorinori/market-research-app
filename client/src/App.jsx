@@ -50,44 +50,70 @@ function App() {
       setApiError(null);
       return;
     }
-
+  
     setLoading(true);
     setError(null);
     setApiError(null);
     setDownloadedFiles([]);
     
     try {
-      // const response = await fetch("http://127.0.0.1:8000/api/scrape", {
       const response = await fetch("/api/scrape", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "Accept": "application/json" // Explicitly request JSON
         },
         body: JSON.stringify({ states: selectedStates, api_key: apiKey }),
       });
+  
+      // First get the raw response text
+      const responseText = await response.text();
       
-      if (!response.ok) {
-        const errorData = await response.json();
-        if (errorData.detail && errorData.detail.includes("Google Maps API key")) {
-          setApiError(errorData.detail);
-        } else {
-          setError(errorData.detail || "Failed to fetch data");
+      try {
+        // Try to parse as JSON
+        const result = responseText ? JSON.parse(responseText) : {};
+        
+        if (!response.ok) {
+          if (result.detail && result.detail.includes("Google Maps API key")) {
+            setApiError(result.detail);
+          } else {
+            setError(result.detail || "Failed to fetch data");
+          }
+          // Also log the raw response for debugging
+          console.error('API Error Response:', {
+            status: response.status,
+            rawResponse: responseText,
+            parsedResponse: result
+          });
+          return;
         }
-        setLoading(false);
-        return;
+  
+        const files = selectedStates.map(state => ({
+          name: `scraped_population_and_job_data_${state.toLowerCase().replace(' ', '_')}.xlsx`,
+          state: state
+        }));
+        setDownloadedFiles(files);
+        
+      } catch (jsonError) {
+        // JSON parsing failed
+        const errorMsg = `Server returned non-JSON response (status ${response.status})`;
+        setError(errorMsg);
+        
+        // Log detailed error information
+        console.error('JSON Parsing Error:', {
+          error: jsonError,
+          status: response.status,
+          headers: Object.fromEntries(response.headers.entries()),
+          rawResponse: responseText,
+          contentType: response.headers.get('content-type')
+        });
+        
+        // Create a more detailed error message for debugging
+        setError(prev => `${errorMsg}. Received: ${responseText.substring(0, 200)}${responseText.length > 200 ? '...' : ''}`);
       }
-
-      const result = await response.json();
-      const files = selectedStates.map(state => ({
-        name: `scraped_population_and_job_data_${state.toLowerCase().replace(' ', '_')}.xlsx`,
-        state: state
-      }));
-      setDownloadedFiles(files);
-      
-    } catch (error) {
-      console.error("Error fetching data:", error);
-      setError(error.message || "Failed to fetch data");
-      setLoading(false);
+    } catch (networkError) {
+      console.error("Network Error:", networkError);
+      setError(networkError.message || "Failed to connect to server");
     } finally {
       setLoading(false);
     }
@@ -95,7 +121,6 @@ function App() {
 
   const getDownloadUrl = async (filename) => {
     try {
-      // const response = await fetch(`http://127.0.0.1:8000/api/download/${filename}`);
       const response = await fetch(`/api/download/${filename}`);
       if (!response.ok) {
         throw new Error('Failed to get download URL');
@@ -229,9 +254,21 @@ function App() {
               </button>
               
               {/* Error message */}
-              {error && !loading && (
-                <div className="error-message">
-                  {error}
+              {error && (
+                <div className="error-container">
+                  <div className="error-message">
+                    <strong>Error:</strong> {error}
+                  </div>
+                  {process.env.NODE_ENV === 'development' && (
+                    <details className="error-details">
+                      <summary>Debug Details</summary>
+                      <div className="error-debug">
+                        <p>API Endpoint: /api/scrape</p>
+                        <p>Selected States: {selectedStates.join(', ')}</p>
+                        <p>API Key: {apiKey ? `${apiKey.substring(0, 3)}...${apiKey.slice(-3)}` : 'Not provided'}</p>
+                      </div>
+                    </details>
+                  )}
                 </div>
               )}
             </div>

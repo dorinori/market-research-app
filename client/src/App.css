@@ -333,7 +333,11 @@
   background: var(--bg-color);
   padding-top: 15px;
   margin-top: auto; /* Pushes to bottom */
-  border-top: none; /* Remove the border line */
+  border-top: none;
+  display: flex; /* Add flex display */
+  align-items: center; /* Center vertically */
+  gap: 15px; /* Space between button and error */
+  width: 100%;
 }
 
 .submit-button {
@@ -347,6 +351,7 @@
   font-weight: 500;
   transition: background-color 0.2s;
   width: 200px;
+  flex-shrink: 0; /* Prevent button from shrinking */
 }
 
 .submit-button:disabled {
@@ -358,11 +363,15 @@
   color: #e74c3c;
   font-size: 14px;
   padding: 8px 12px;
-  background-color: #fff0f0;
+  background-color: rgba(231, 76, 60, 0.1); /* Lighter background */
   border-radius: 4px;
-  text-align: center;
-  width: 100%;
-  max-width: 600px;
+  text-align: left; /* Changed from center */
+  width: auto; /* Let it take natural width */
+  max-width: 400px; /* Prevent it from getting too wide */
+  margin: 0; /* Remove any default margins */
+  white-space: nowrap; /* Keep error on one line */
+  overflow: hidden;
+  text-overflow: ellipsis; /* Add ellipsis if too long */
 }
 
 /* Download Section - 20% width */

@@ -1,5 +1,5 @@
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import FileResponse 
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 import subprocess
 import json
@@ -89,17 +89,11 @@ async def scrape(request: StatesRequest):
         # return_code = process.poll()
         # print("Subprocess completed with return code:", return_code)
         
-        # Collect results from output files
-        # for state in states:
-        #     filename = os.path.join("scraped_data", f"{state.replace(' ', '').lower()}_cities_population.json")
-        #     if os.path.exists(filename):
-        #         with open(filename, "r") as file:
-        #             cities_data = json.load(file)
-        #         all_results.append({state: {"status": "success", "data": cities_data}})
-        #     else:
-        #         all_results.append({state: {"status": "error", "message": f"Output file not found for {state}"}})
-        
-        return {"status": "success"}
+        return JSONResponse({
+            "status": "success",
+            "states_processed": list(states),
+            "api_key_valid": True
+        })
 
     except HTTPException as he:
         raise he

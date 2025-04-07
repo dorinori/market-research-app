@@ -22,6 +22,7 @@ import json
 import sys
 from lxml import html
 import pandas as pd
+from pandas import DataFrame
 import re
 import os
 from datetime import datetime

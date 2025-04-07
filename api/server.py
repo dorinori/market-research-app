@@ -113,12 +113,19 @@ async def download_file(filename: str):
 handler = Mangum(app, lifespan="off")
 
 # Optional: Keep this if you need direct Lambda invocation
-def lambda_handler(event, context):
+def vercel_handler(event, context):
     try:
         return handler(event, context)
     except Exception as e:
-        logger.error(f"Lambda handler error: {str(e)}\n{traceback.format_exc()}")
+        logger.error(f"Vercel handler error: {str(e)}\n{traceback.format_exc()}")
         return {
             "statusCode": 500,
             "body": json.dumps({"error": str(e)})
         }
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
+else:
+    # For Vercel serverless
+    __all__ = ["app", "vercel_handler"]

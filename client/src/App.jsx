@@ -57,8 +57,8 @@ function App() {
     setDownloadedFiles([]);
     
     try {
-      // const response = await fetch("/api/scrape", {
-      const response = await fetch("http://127.0.0.1:8000/api/scrape", {
+      const response = await fetch("/api/scrape", {
+      // const response = await fetch("http://127.0.0.1:8000/api/scrape", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -123,8 +123,8 @@ function App() {
 
   const getDownloadUrl = async (filename) => {
     try {
-      // const response = await fetch(`/api/download/${filename}`);
-      const response = await fetch(`http://127.0.0.1:8000/api/download/${filename}`);
+      const response = await fetch(`/api/download/${filename}`);
+      // const response = await fetch(`http://127.0.0.1:8000/api/download/${filename}`);
       if (!response.ok) {
         throw new Error('Failed to get download URL');
       }

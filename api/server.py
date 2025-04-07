@@ -47,7 +47,7 @@ async def read_stream(stream, callback):
             break
         callback(line.strip())
 
-@app.get("/")
+@app.get("/api/test")
 async def root():
     return {"message": "API is working"}
 

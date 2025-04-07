@@ -33,7 +33,8 @@ async def read_stream(stream, callback):
             break
         callback(line.strip())
 
-@app.post("/scrape")
+# @app.post("/scrape")
+@app.post("/api/scrape")
 async def scrape(request: StatesRequest):
     states = set(request.states)
     api_key = request.api_key
@@ -62,7 +63,7 @@ async def scrape(request: StatesRequest):
 
         # Read output in real-time
         def handle_output(line):
-            if line.startswith("Scraping"):
+            # if line.startswith("Scraping"):
                 print(f"Scraper Console Output: {line}")
             
         # Read both stdout and stderr
@@ -96,6 +97,7 @@ async def scrape(request: StatesRequest):
         raise HTTPException(status_code=500, detail=str(e))
     
 @app.get("/download/{filename}")
+@app.get("/api/download/{filename}")
 async def download_file(filename: str):
     # Construct the file path
     file_path = os.path.join(

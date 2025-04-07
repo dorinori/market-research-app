@@ -24,7 +24,6 @@ s3 = boto3.client('s3',
 )
 
 app = FastAPI()
-handle = Mangum(app)
 
 # BASE_DIR = Path(__file__).parent
 
@@ -47,6 +46,10 @@ async def read_stream(stream, callback):
         if not line:
             break
         callback(line.strip())
+
+@app.get("/")
+async def root():
+    return {"message": "API is working"}
 
 @app.post("/api/scrape")
 async def scrape(request: StatesRequest):
@@ -116,3 +119,16 @@ async def download_file(filename: str):
         return {"url": url}
     except Exception as e:
         raise HTTPException(500, detail=str(e))
+    
+
+handler = Mangum(app)
+
+def lambda_handler(event, context):
+    try:
+        return handler(event, context)
+    except Exception as e:
+        print(f"ERROR: {str(e)}\n{traceback.format_exc()}")
+        return {
+            "statusCode": 500,
+            "body": json.dumps({"error": str(e)})
+        }

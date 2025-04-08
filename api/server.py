@@ -101,7 +101,7 @@ async def scrape_data(request: StatesRequest):
             
             async def run_scraper_wrapper():
                 try: 
-                    from scraper import run_scraper
+                    from .scraper import run_scraper
                     await loop.run_in_executor(None, lambda: run_scraper(states, api_key, min_population))
                     await log_queue.put("SCRAPER_COMPLETE")
                 except Exception as e:

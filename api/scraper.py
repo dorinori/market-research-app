@@ -48,6 +48,28 @@ s3 = boto3.client('s3',
     region_name=AWS_REGION
 )
 
+def load_json_from_s3(key):
+    """Load JSON data from S3"""
+    try:
+        response = s3.get_object(Bucket=S3_BUCKET_NAME, Key=key)
+        return json.loads(response['Body'].read().decode('utf-8'))
+    except Exception as e:
+        print(f"Error loading {key} from S3: {e}")
+        return {}
+
+def save_json_to_s3(data, key):
+    """Save JSON data to S3"""
+    try:
+        s3.put_object(
+            Bucket=S3_BUCKET_NAME,
+            Key=key,
+            Body=json.dumps(data, indent=4),
+            ContentType='application/json'
+        )
+    except Exception as e:
+        print(f"Error saving {key} to S3: {e}")
+        raise
+
 BASE_DIR = Path(__file__).parent
 DATA_DIR = BASE_DIR / "data"
 SCRAPED_DIR = BASE_DIR / "data" / "scraped_data"
@@ -191,14 +213,17 @@ UNCOMMENT IF WE NEED TO RE-GENERATE area_data.json
 
 # area_data_path = DATA_DIR / "area_data.json"
 # city_data_path = DATA_DIR / "city_data.json"
-area_data_path = os.path.join(os.path.dirname(__file__), "data", "area_data.json")
-city_data_path = os.path.join(os.path.dirname(__file__), "data", "city_data.json")
+# area_data_path = os.path.join(os.path.dirname(__file__), "data", "area_data.json")
+# city_data_path = os.path.join(os.path.dirname(__file__), "data", "city_data.json")
 
-with open(area_data_path, "r") as json_file:
-    area_data = json.load(json_file)
+# with open(area_data_path, "r") as json_file:
+#     area_data = json.load(json_file)
 
-with open(city_data_path, "r") as json_file:
-    city_data = json.load(json_file)
+# with open(city_data_path, "r") as json_file:
+#     city_data = json.load(json_file)
+
+area_data = load_json_from_s3('data/area_data.json')
+city_data = load_json_from_s3('data/city_data.json')
 
 def get_city_coordinates(city_name):
     if city_name in city_data:
@@ -210,8 +235,13 @@ def get_city_coordinates(city_name):
             city_data[city_name] = {
                 "coordinates": coordinates
             }
-            with open(city_data_path, "w") as json_file:
-                json.dump(city_data, json_file, indent=4)
+            # with open(city_data_path, "w") as json_file:
+            #     json.dump(city_data, json_file, indent=4)
+            try:
+                # Save updated data back to S3
+                save_json_to_s3(city_data, 'data/city_data.json')
+            except Exception as e:
+                print(f"Warning: Failed to update city_data in S3: {e}")
             return coordinates
         else:
             return None
@@ -314,8 +344,8 @@ def save_to_s3(data, state):
 def run_scraper(states, key):
     # output_dir = SCRAPED_DIR
     # output_dir = os.path.join(os.path.dirname(__file__), "data", "scraped_data")
-    output_dir = os.path.join(tempfile.gettempdir(), "scraped_data")
-    os.makedirs(output_dir, exist_ok=True)
+    # output_dir = os.path.join(tempfile.gettempdir(), "scraped_data")
+    # os.makedirs(output_dir, exist_ok=True)
 
     base_url_city = 'https://www.city-data.com/city/'
 
@@ -362,16 +392,24 @@ def run_scraper(states, key):
         data['Job Growth (%)'] = []
 
         # Save the data to a JSON file
-        json_path = os.path.join(output_dir, f"{state.replace(' ', '').lower()}_cities_population.json")
-        with open(json_path, "w") as outfile:
-            json.dump(cities_data, outfile, indent=4)
+        # json_path = os.path.join(output_dir, f"{state.replace(' ', '').lower()}_cities_population.json")
+        # with open(json_path, "w") as outfile:
+        #     json.dump(cities_data, outfile, indent=4)
         
-        with open(json_path, "r") as json_file:
-            cities_to_analyze = json.load(json_file)
+        # with open(json_path, "r") as json_file:
+        #     cities_to_analyze = json.load(json_file)
+        cities_data_key = f'scraped_data/{state.replace(" ", "").lower()}_cities_population.json'
+        s3.put_object(
+            Bucket=S3_BUCKET_NAME,
+            Key=cities_data_key,
+            Body=json.dumps(cities_data, indent=4)
+        )
+        response = s3.get_object(Bucket=S3_BUCKET_NAME, Key=cities_data_key)
+        cities_to_analyze = json.loads(response['Body'].read().decode('utf-8'))
         
         for city in cities_to_analyze:
             print(f"Scraping {city}, {state}")
-            sys.stdout.flush()
+
             url_city = f'{base_url_city}{city.replace(' ', '-').replace('\'', '')}-{state.replace(' ', '-')}.html'
             city_data = scrape_city_data(url_city, city_fields)
             if city_data:
@@ -397,7 +435,7 @@ def run_scraper(states, key):
 
         if data['City']:
             print(f"Scraping complete for state of {state}")
-            sys.stdout.flush()
+
             s3_filename = save_to_s3(data, state)
             download_url = s3.generate_presigned_url(
                 'get_object',
@@ -409,7 +447,6 @@ def run_scraper(states, key):
             # save_to_spreadsheet(data, filename)
 
     print("Scraping complete for all states")
-    sys.stdout.flush()
 
 
 # if __name__ == "__main__":

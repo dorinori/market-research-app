@@ -19,13 +19,11 @@ STATES_TO_ANALYZE = {
 
 import requests
 import json
-import sys
 from lxml import html
 import pandas as pd
 from pandas import DataFrame
 import re
 import os
-import tempfile
 from datetime import datetime
 from shapely.geometry import Point
 from geopy.geocoders import GoogleV3
@@ -69,10 +67,6 @@ def save_json_to_s3(data, key):
     except Exception as e:
         print(f"Error saving {key} to S3: {e}")
         raise
-
-# BASE_DIR = Path(__file__).parent
-# DATA_DIR = BASE_DIR / "data"
-# SCRAPED_DIR = BASE_DIR / "data" / "scraped_data"
 
 geolocator = None
 
@@ -239,7 +233,7 @@ def get_city_coordinates(city_name):
             #     json.dump(city_data, json_file, indent=4)
             try:
                 # Save updated data back to S3
-                save_json_to_s3(city_data, 'data/city_data.json')
+                save_json_to_s3(city_data, 'json/city_data.json')
             except Exception as e:
                 print(f"Warning: Failed to update city_data in S3: {e}")
             return coordinates
@@ -342,10 +336,6 @@ def save_to_s3(data, state):
 # Main function
 # def main():
 def run_scraper(states, key):
-    # output_dir = SCRAPED_DIR
-    # output_dir = os.path.join(os.path.dirname(__file__), "data", "scraped_data")
-    # output_dir = os.path.join(tempfile.gettempdir(), "scraped_data")
-    # os.makedirs(output_dir, exist_ok=True)
 
     base_url_city = 'https://www.city-data.com/city/'
 
@@ -364,7 +354,7 @@ def run_scraper(states, key):
         'Unemployment rate': '//*[@id="unemployment"]/div[1]/table/tr[1]/td[2]/text()'
     }
 
-    STATES_TO_ANALYZE = states #eval(sys.argv[1])
+    STATES_TO_ANALYZE = states
     # STATES_TO_ANALYZE = {
     #     'North Carolina', 'Alabama', 'Georgia'
     # }

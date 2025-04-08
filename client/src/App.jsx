@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import './App.css';
 
 function App() {
@@ -8,9 +8,10 @@ function App() {
   const [apiKey, setApiKey] = useState('');
   const [showApiKey, setShowApiKey] = useState(false);
   const [error, setError] = useState(null);
-  const [apiError, setApiError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [logs, setLogs] = useState([]);
+  const [minPopulation, setMinPopulation] = useState(50000);
+
   
   const states = [
     "Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut",
@@ -30,6 +31,11 @@ function App() {
         ? prevSelectedStates.filter((item) => item !== state)
         : [...prevSelectedStates, state]
     );
+  };
+
+  const handlePopulationChange = (e) => {
+    const value = parseInt(e.target.value) || 0;
+    setMinPopulation(Math.max(0, value)); // Ensure it doesn't go below 0
   };
 
   // Filter states based on search term
@@ -53,7 +59,6 @@ function App() {
   
     setLoading(true);
     setError(null);
-    setApiError(null);
     setDownloadedFiles([]);
     setLogs([]);
   
@@ -64,7 +69,11 @@ function App() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ states: selectedStates, api_key: apiKey }),
+        body: JSON.stringify({ 
+          states: selectedStates, 
+          api_key: apiKey,
+          min_population: minPopulation 
+        }),
       });
   
       if (!response.ok || !response.body) {
@@ -97,7 +106,7 @@ function App() {
                     return;
                   case 'complete':
                     const files = selectedStates.map(state => ({
-                      name: `scraped_data_${state.toLowerCase().replace(' ', '_')}.xlsx`,
+                      name: `scraped_population_and_job_data_${state.toLowerCase().replace(' ', '_')}.xlsx`,
                       state: state
                     }));
                     setDownloadedFiles(files);
@@ -148,21 +157,23 @@ function App() {
             <div className="container-header">
               <span className="border-title">Input Target Data</span>
             </div>
-            {/* API Key Input */}
-            <div className="api-key-container">
-              <h2 className="api-key-input-title">
-                Enter Google Maps API Key: 
-              </h2>
-              <div className="api-key-input-wrapper">
+            
+            {/* API Key and Population Input Row */}
+            <div className="input-row">
+              {/* API Key Input */}
+              <div className="api-key-container">
+                <h2 className="api-key-input-title">
+                  Enter Google Maps API Key: 
+                </h2>
+                <div className="api-key-input-wrapper">
                   <input
                     type={showApiKey ? "text" : "password"}
                     value={apiKey}
                     onChange={(e) => {
                       setApiKey(e.target.value);
                       setError(null);
-                      setApiError(null);
                     }}
-                    className={`api-key-input ${apiError ? 'error' : ''}`}
+                    className={`api-key-input`}
                     placeholder="Google Maps API key"
                   />
                   <button 
@@ -176,13 +187,23 @@ function App() {
                 </div>
               </div>
 
-              {/* API error message */}
-              {apiError && (
-                <p className="api-error">
-                  {apiError}
-                  <small>(Closest Metro Areas may not be generated)</small>
-                </p>
-              )}
+              {/* Population Input */}
+              <div className="population-container">
+                <h2 className="population-input-title">
+                  Minimum Population Count:
+                </h2>
+                <div className="population-input-wrapper">
+                  <input
+                    type="number"
+                    value={minPopulation}
+                    onChange={handlePopulationChange}
+                    className="population-input"
+                    min="0"
+                    step="1000"
+                  />
+                </div>
+              </div>
+            </div>
             
             {/* State Selection */}
             <h2 className="state-selection-title">Select States:

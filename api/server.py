@@ -46,6 +46,7 @@ app.add_middleware(
 class StatesRequest(BaseModel):
     states: list
     api_key: str
+    min_population: int
 
 @app.get("/api/test")
 async def test_endpoint():
@@ -67,6 +68,7 @@ class StreamToLogger:
 async def scrape_data(request: StatesRequest):
     states = request.states
     api_key = request.api_key
+    min_population = request.min_population
     
     async def generate_logs():
         try:
@@ -99,8 +101,8 @@ async def scrape_data(request: StatesRequest):
             
             async def run_scraper_wrapper():
                 try: 
-                    from .scraper import run_scraper
-                    await loop.run_in_executor(None, lambda: run_scraper(states, api_key))
+                    from scraper import run_scraper
+                    await loop.run_in_executor(None, lambda: run_scraper(states, api_key, min_population))
                     await log_queue.put("SCRAPER_COMPLETE")
                 except Exception as e:
                     await log_queue.put(f"SCRAPER_ERROR:{str(e)}")

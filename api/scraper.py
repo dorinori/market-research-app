@@ -336,7 +336,7 @@ def save_to_s3(data, state):
 
 # Main function
 # def main():
-def run_scraper(states, key):
+def run_scraper(states, key, min_pop):
 
     base_url_city = 'https://www.city-data.com/city/'
 
@@ -366,7 +366,7 @@ def run_scraper(states, key):
     geolocator = GoogleV3(api_key=API_KEY)
 
     # Specify the minimum population for inclusion
-    MIN_POPULATION = 50000
+    MIN_POPULATION = min_pop
     for state in STATES_TO_ANALYZE:            
         url = f'https://www.city-data.com/city/{state.replace(' ', '-')}.html'
         cities_data = scrape_cities(url, state, MIN_POPULATION)

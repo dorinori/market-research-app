@@ -34,7 +34,6 @@ def get_s3_client():
 
 
 app = FastAPI()
-app.mount("/", StaticFiles(directory="/app/dist", html=True), name="static")
 
 # CORS Configuration
 app.add_middleware(
@@ -155,33 +154,36 @@ async def download_file(filename: str):
         logger.error(f"Download error: {str(e)}")
         raise HTTPException(500, detail=str(e))
 
+app.mount("/", StaticFiles(directory="/app/dist", html=True), name="static")
 
-handler = Mangum(app)
+# handler = Mangum(app)
 
-# Optional: Keep this if you need direct Lambda invocation
-def vercel_handler(request):
-    # Convert Vercel request to Lambda event
-    body = request.body if hasattr(request, 'body') else None
-    event = {
-        'httpMethod': request.method,
-        'path': request.path,
-        'headers': dict(request.headers),
-        'queryStringParameters': dict(request.query_params),
-        'body': body,
-    }
+# # Optional: Keep this if you need direct Lambda invocation
+# def vercel_handler(request):
+#     # Convert Vercel request to Lambda event
+#     body = request.body if hasattr(request, 'body') else None
+#     event = {
+#         'httpMethod': request.method,
+#         'path': request.path,
+#         'headers': dict(request.headers),
+#         'queryStringParameters': dict(request.query_params),
+#         'body': body,
+#     }
     
-    # Call the Mangum handler
-    response = handler(event, None)
+#     # Call the Mangum handler
+#     response = handler(event, None)
     
-    # Convert Lambda response to FastAPI response
-    return JSONResponse(
-        content=json.loads(response['body']),
-        status_code=response['statusCode'],
-        headers=response['headers']
-    )
+#     # Convert Lambda response to FastAPI response
+#     return JSONResponse(
+#         content=json.loads(response['body']),
+#         status_code=response['statusCode'],
+#         headers=response['headers']
+#     )
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
-else:
-    __all__ = ["app", "vercel_handler"]
+    import os
+    PORT = int(os.getenv("PORT", 8000)) 
+    uvicorn.run(app, host="0.0.0.0", port=PORT)
+# else:
+#     __all__ = ["app", "vercel_handler"]

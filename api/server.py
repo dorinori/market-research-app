@@ -50,7 +50,7 @@ class StatesRequest(BaseModel):
 
 @app.get("/api/test")
 async def test_endpoint():
-    return {"message": "API is working"}
+    return {"test": "API is working"}
 
 class StreamToLogger:
     def __init__(self, queue):

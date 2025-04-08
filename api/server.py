@@ -98,7 +98,7 @@ async def scrape_data(request: StatesRequest):
             loop = asyncio.get_event_loop()
             
             async def run_scraper_wrapper():
-                try:
+                try: 
                     from .scraper import run_scraper
                     await loop.run_in_executor(None, lambda: run_scraper(states, api_key))
                     await log_queue.put("SCRAPER_COMPLETE")

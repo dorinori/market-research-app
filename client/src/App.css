@@ -86,8 +86,9 @@
 
 /* Container Header Styles */
 .container-header {
+  margin-bottom: 0px;
   position: relative;
-  margin: -15px -20px 15px -20px; /* Negative margins to pull out */
+  margin: -15px -20px 5px -20px; /* Negative margins to pull out */
   text-align: left;
 }
 
@@ -200,7 +201,7 @@
 .api-key-input-title, 
 .state-selection-title {
   margin-top: 0;
-  font-size: 16px;
+  font-size: 14px;
   margin-bottom: 10px;
   text-align: left;
 }
@@ -325,6 +326,66 @@
   cursor: pointer;
   min-width: 16px;
 }
+
+/* Log Section */
+.log-section {
+  margin-top: 0px;
+  border: none;
+  padding: 0px; 
+  background: transparent; 
+}
+
+.log-container {
+  margin-top: 0px;
+}
+
+.log-output {
+  height: 24px; /* Single line height by default */
+  max-height: 100px; /* Maximum height when expanded */
+  overflow-y: auto; /* Enable vertical scrolling */
+  background: transparent;
+  color: var(--text-color);
+  padding: 2px 5px;
+  border: 1px solid var(--border-color);
+  border-radius: 2px;
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  line-height: 1.2;
+  transition: height 0.2s ease; /* Smooth height adjustment */
+}
+
+/* Expands when content overflows */
+.log-output:has(.log-entry:nth-child(2)) {
+  height: 100px; /* Expand to max height when multiple entries */
+}
+
+/* Show full text on hover */
+.log-entry:hover {
+  white-space: normal;
+  text-overflow: clip;
+}
+
+.log-entry {
+  margin: 0;
+  padding: 2px 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.no-logs {
+  padding: 2px 5px;
+  font-size: 12px;
+  margin: 0;
+  color: var(--text-color);
+  font-family: 'Courier New', monospace;
+  background: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: 2px;
+  line-height: 1.2;
+  text-align: left;
+}
+
 
 /* Sticky Submit Button */
 .submit-container {

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import './App.css';
 
 function App() {
@@ -10,6 +10,7 @@ function App() {
   const [error, setError] = useState(null);
   const [apiError, setApiError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [logs, setLogs] = useState([]);
   
   const states = [
     "Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut",
@@ -47,7 +48,6 @@ function App() {
   const handleSubmit = async () => {
     if (!apiKey) {
       setError("Please enter your API key");
-      setApiError(null);
       return;
     }
   
@@ -55,68 +55,69 @@ function App() {
     setError(null);
     setApiError(null);
     setDownloadedFiles([]);
-    
+    setLogs([]);
+  
     try {
-      const response = await fetch("/api/scrape", {
       // const response = await fetch("http://127.0.0.1:8000/api/scrape", {
+      const response = await fetch("/api/scrape", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Accept": "application/json" // Explicitly request JSON
         },
         body: JSON.stringify({ states: selectedStates, api_key: apiKey }),
       });
   
-      // First get the raw response text
-      const responseText = await response.text();
-      console.log(responseText)
-      
-      try {
-        // Try to parse as JSON
-        const result = responseText ? JSON.parse(responseText) : {};
-        
-        if (!response.ok) {
-          if (result.detail && result.detail.includes("Google Maps API key")) {
-            setApiError(result.detail);
-          } else {
-            setError(result.detail || "Failed to fetch data");
-          }
-          // Also log the raw response for debugging
-          console.error('API Error Response:', {
-            status: response.status,
-            rawResponse: responseText,
-            parsedResponse: result
-          });
-          return;
-        }
-  
-        const files = selectedStates.map(state => ({
-          name: `scraped_population_and_job_data_${state.toLowerCase().replace(' ', '_')}.xlsx`,
-          state: state
-        }));
-        setDownloadedFiles(files);
-        
-      } catch (jsonError) {
-        // JSON parsing failed
-        const errorMsg = `Server returned non-JSON response (status ${response.status})`;
-        setError(errorMsg);
-        
-        // Log detailed error information
-        console.error('JSON Parsing Error:', {
-          error: jsonError,
-          status: response.status,
-          headers: Object.fromEntries(response.headers.entries()),
-          rawResponse: responseText,
-          contentType: response.headers.get('content-type')
-        });
-        
-        // Create a more detailed error message for debugging
-        setError(prev => `${errorMsg}. Received: ${responseText.substring(0, 200)}${responseText.length > 200 ? '...' : ''}`);
+      if (!response.ok || !response.body) {
+        throw new Error("Failed to connect to server");
       }
-    } catch (networkError) {
-      console.error("Network Error:", networkError);
-      setError(networkError.message || "Failed to connect to server");
-    } finally {
+  
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      
+      const processStream = async () => {
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+  
+            const chunk = decoder.decode(value, { stream: true });
+            const lines = chunk.split('\n\n').filter(line => line.trim() !== '');
+  
+            for (const line of lines) {
+              if (line.startsWith('data: ')) {
+                const data = JSON.parse(line.substring(6));
+                
+                switch (data.type) {
+                  case 'log':
+                    setLogs(prev => [...prev, data.message]);
+                    break;
+                  case 'error':
+                    setError(data.message);
+                    setLoading(false);
+                    return;
+                  case 'complete':
+                    const files = selectedStates.map(state => ({
+                      name: `scraped_data_${state.toLowerCase().replace(' ', '_')}.xlsx`,
+                      state: state
+                    }));
+                    setDownloadedFiles(files);
+                    setLoading(false);
+                    break;
+                }
+              }
+            }
+          }
+        } catch (error) {
+          setError(error.message);
+          setLoading(false);
+        }
+      };
+  
+      // Don't await this so the UI stays responsive
+      processStream();
+      
+    } catch (error) {
+      setError(error.message);
       setLoading(false);
     }
   };
@@ -246,6 +247,29 @@ function App() {
               </div>
             </div>
 
+            <div className="log-section">
+              <div className="container-header">
+                <span className="border-title">Processing Logs</span>
+              </div>
+              <div className="log-container">
+                {logs.length > 0 ? (
+                  <div className="log-output" ref={el => {
+                    if (el) el.scrollTop = el.scrollHeight;
+                  }}>
+                    {logs.map((log, index) => (
+                      <div key={index} className="log-entry">
+                        {log}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="no-logs">
+                    {loading ? "Waiting for logs..." : "No logs available"}
+                  </div>
+                )}
+              </div>
+            </div>
+
             {/* Generate Data Button */}
             <div className="submit-container">
               <button 
@@ -263,7 +287,6 @@ function App() {
                 </div>
               )}
             </div>
-
           </div>
 
           {/* Download Section */}
@@ -294,8 +317,9 @@ function App() {
                   </div>
                 ))}
               </div>
+
             </div>
-          )}
+          )}          
         </div>
       </div>
     </div>

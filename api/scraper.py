@@ -32,6 +32,7 @@ from pathlib import Path
 import boto3
 from io import BytesIO
 from dotenv import load_dotenv
+import sys
 
 load_dotenv()
 
@@ -102,7 +103,7 @@ state_code_map = {
 def scrape_city_data(url, fields):
     response = requests.get(url)
     if response.status_code != 200:
-        print(f"Failed to retrieve data from {url}: {response.status_code}")
+        # print(f"Failed to retrieve data from {url}: {response.status_code}")
         return None
 
     tree = html.fromstring(response.content)
@@ -125,7 +126,7 @@ def scrape_city_data(url, fields):
                     value = element_text
             data[field_name] = value
         else:
-            print(f"Failed to find the text '{field_name}' in {url}.")
+            # print(f"Failed to find the text '{field_name}' in {url}.")
             data[field_name] = None
 
     return data
@@ -143,7 +144,7 @@ def clean_int(number_string):
 def scrape_bls_data(url):
     response = requests.get(url)
     if response.status_code != 200:
-        print(f"Failed to retrieve data from {url}: {response.status_code}")
+        # print(f"Failed to retrieve data from {url}: {response.status_code}")
         return None
 
     tree = html.fromstring(response.content)
@@ -152,7 +153,7 @@ def scrape_bls_data(url):
     values = tree.xpath('//*[@id="table0"]/tbody/tr/td[1]/text()')
 
     if not values:
-        print(f"Failed to extract job data from {url}")
+        # print(f"Failed to extract job data from {url}")
         return None
 
     try:
@@ -326,7 +327,7 @@ def save_to_s3(data, state):
             filename
         )
         
-        print(f"Data saved to S3: {filename}")
+        # print(f"Data saved to S3: {filename}")
         return filename
         
     except Exception as e:
@@ -425,6 +426,7 @@ def run_scraper(states, key):
 
         if data['City']:
             print(f"Scraping complete for state of {state}")
+            sys.stdout.flush()
 
             s3_filename = save_to_s3(data, state)
             download_url = s3.generate_presigned_url(
@@ -432,11 +434,12 @@ def run_scraper(states, key):
                 Params={'Bucket': S3_BUCKET_NAME, 'Key': s3_filename},
                 ExpiresIn=3600  # 1 hour expiration
             )
-            print(f"Download URL: {download_url}")
+            # print(f"Download URL: {download_url}")
             # filename = os.path.join(output_dir, f'scraped_population_and_job_data_{state.replace(' ', '').lower()}.xlsx')
             # save_to_spreadsheet(data, filename)
 
     print("Scraping complete for all states")
+    sys.stdout.flush()
 
 
 # if __name__ == "__main__":

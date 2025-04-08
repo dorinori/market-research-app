@@ -1,5 +1,5 @@
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 import json
 from pydantic import BaseModel
@@ -11,6 +11,9 @@ import boto3
 from dotenv import load_dotenv
 from mangum import Mangum
 import logging
+from io import StringIO
+import sys
+import asyncio
 
 # Configure logging
 logger = logging.getLogger()
@@ -48,52 +51,87 @@ class StatesRequest(BaseModel):
 async def test_endpoint():
     return {"message": "API is working"}
 
+class StreamToLogger:
+    def __init__(self, queue):
+        self.queue = queue
+        
+    def write(self, message):
+        if message.strip():
+            # Put the message in the queue synchronously
+            # We'll handle the async part when we read from the queue
+            self.queue.put_nowait(message)
+    
+    def flush(self):
+        pass
 @app.post("/api/scrape")
 async def scrape_data(request: StatesRequest):
-    """
-    Modified scrape endpoint that works with AWS Lambda
-    """
     states = request.states
     api_key = request.api_key
-    logger.info(f"Starting scrape for states: {states}")
     
-    try:
-        # Validate Google Maps API key
-        geolocator = GoogleV3(api_key=api_key)
+    async def generate_logs():
         try:
-            test_location = geolocator.geocode("New York")
-            if not test_location:
-                raise HTTPException(status_code=400, detail="Geocoding service unavailable")
-        except GeocoderQueryError as e:
-            raise HTTPException(status_code=400, detail="Invalid Google Maps API key")
-            return
-        
-        # Replace subprocess call with direct function import
-        try:
-            # Import your scraper logic directly
-            from .scraper import run_scraper  
-            print(states)
-            # Run the scraper directly instead of via subprocess
-            results = run_scraper(states, api_key)
+            # Initial connection message
+            yield "data: " + json.dumps({"type": "log", "message": "Connection established with backend"}) + "\n\n"
             
-            return JSONResponse({
-                "status": "success",
-                "states_processed": states,
-                "api_key_valid": True,
-                "data": results  # Include any results from the scraper
-            })
+            # Validate API key
+            geolocator = GoogleV3(api_key=api_key)
+            try:
+                test_location = geolocator.geocode("New York")
+                if not test_location:
+                    yield "data: " + json.dumps({"type": "error", "message": "Geocoding service unavailable"}) + "\n\n"
+                    return
+            except GeocoderQueryError:
+                yield "data: " + json.dumps({"type": "error", "message": "Invalid Google Maps API key"}) + "\n\n"
+                return
+
+            # Create a queue for logs
+            log_queue = asyncio.Queue()
             
-        except ImportError:
-            raise HTTPException(
-                status_code=500,
-                detail="Error Importing Scraper"
-            )
+            # Redirect stdout to our queue
+            def handle_log(message):
+                if message.strip():
+                    asyncio.run_coroutine_threadsafe(log_queue.put(message.strip()), asyncio.get_event_loop())
+                
+            sys.stdout = StreamToLogger(log_queue)
             
-    except HTTPException as he:
-        raise he
-    except Exception as e:
-        logger.error(f"Scraping error: {str(e)}\n{traceback.format_exc()}")
-        raise HTTPException(status_code=500, detail=str(e))
+            # Run scraper in a thread executor
+            loop = asyncio.get_event_loop()
+            
+            async def run_scraper_wrapper():
+                try:
+                    from scraper import run_scraper
+                    await loop.run_in_executor(None, lambda: run_scraper(states, api_key))
+                    await log_queue.put("SCRAPER_COMPLETE")
+                except Exception as e:
+                    await log_queue.put(f"SCRAPER_ERROR:{str(e)}")
+                    raise
+            
+            scraper_task = asyncio.create_task(run_scraper_wrapper())
+            
+            # Stream logs as they come in
+            while True:
+                try:
+                    message = await asyncio.wait_for(log_queue.get(), timeout=1.0)
+                    
+                    if message == "SCRAPER_COMPLETE":
+                        yield "data: " + json.dumps({"type": "complete"}) + "\n\n"
+                        break
+                    elif message.startswith("SCRAPER_ERROR:"):
+                        yield "data: " + json.dumps({"type": "error", "message": message[14:]}) + "\n\n"
+                        break
+                    else:
+                        yield "data: " + json.dumps({"type": "log", "message": message}) + "\n\n"
+                except asyncio.TimeoutError:
+                    if scraper_task.done():
+                        break
+                    continue
+                    
+        except Exception as e:
+            yield "data: " + json.dumps({"type": "error", "message": str(e)}) + "\n\n"
+        finally:
+            sys.stdout = sys.__stdout__
+
+    return StreamingResponse(generate_logs(), media_type="text/event-stream")
 
 @app.get("/api/download/{filename}")
 async def download_file(filename: str):

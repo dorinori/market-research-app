@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse, StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 import json
 from pydantic import BaseModel
 import traceback
@@ -33,6 +34,7 @@ def get_s3_client():
 
 
 app = FastAPI()
+app.mount("/", StaticFiles(directory="/app/dist", html=True), name="static")
 
 # CORS Configuration
 app.add_middleware(
@@ -50,7 +52,7 @@ class StatesRequest(BaseModel):
 
 @app.get("/api/test")
 async def test_endpoint():
-    return {"test": "API is working"}
+    return {"message": "API is working"}
 
 class StreamToLogger:
     def __init__(self, queue):

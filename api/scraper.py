@@ -70,9 +70,9 @@ def save_json_to_s3(data, key):
         print(f"Error saving {key} to S3: {e}")
         raise
 
-BASE_DIR = Path(__file__).parent
-DATA_DIR = BASE_DIR / "data"
-SCRAPED_DIR = BASE_DIR / "data" / "scraped_data"
+# BASE_DIR = Path(__file__).parent
+# DATA_DIR = BASE_DIR / "data"
+# SCRAPED_DIR = BASE_DIR / "data" / "scraped_data"
 
 geolocator = None
 
@@ -222,8 +222,8 @@ UNCOMMENT IF WE NEED TO RE-GENERATE area_data.json
 # with open(city_data_path, "r") as json_file:
 #     city_data = json.load(json_file)
 
-area_data = load_json_from_s3('data/area_data.json')
-city_data = load_json_from_s3('data/city_data.json')
+area_data = load_json_from_s3('json/area_data.json')
+city_data = load_json_from_s3('json/city_data.json')
 
 def get_city_coordinates(city_name):
     if city_name in city_data:
@@ -398,7 +398,7 @@ def run_scraper(states, key):
         
         # with open(json_path, "r") as json_file:
         #     cities_to_analyze = json.load(json_file)
-        cities_data_key = f'scraped_data/{state.replace(" ", "").lower()}_cities_population.json'
+        cities_data_key = f'json/{state.replace(" ", "").lower()}_cities_population.json'
         s3.put_object(
             Bucket=S3_BUCKET_NAME,
             Key=cities_data_key,

@@ -34,7 +34,7 @@ def get_s3_client():
 
 
 app = FastAPI()
-app.mount("/", StaticFiles(directory="/app/dist", html=True), name="static")
+app.mount("/", StaticFiles(directory="/market-research-app/dist", html=True), name="static")
 
 # CORS Configuration
 app.add_middleware(
